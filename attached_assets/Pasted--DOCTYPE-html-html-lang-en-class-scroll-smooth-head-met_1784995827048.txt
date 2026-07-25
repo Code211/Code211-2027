@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code211 | D211's Premier Student-Run Hackathon</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            dark: '#0B0F19',
+                            card: '#111827',
+                            cyan: '#00F0FF',
+                            purple: '#8A2BE2',
+                        }
+                    },
+                    animation: {
+                        'glow': 'glow 2s ease-in-out infinite alternate',
+                    },
+                    keyframes: {
+                        glow: {
+                            '0%': { boxShadow: '0 0 10px #00F0FF20, 0 0 20px #00F0FF20' },
+                            '100%': { boxShadow: '0 0 20px #00F0FF60, 0 0 40px #00F0FF40' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #0B0F19;
+            color: #ffffff;
+            background-image: 
+                radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
+                radial-gradient(at 50% 0%, hsla(225,39%,30%,0.1) 0, transparent 50%), 
+                radial-gradient(at 100% 0%, hsla(339,49%,30%,0.1) 0, transparent 50%);
+            background-attachment: fixed;
+            overflow-x: hidden;
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0B0F19; }
+        ::-webkit-scrollbar-thumb { background: #8A2BE2; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #00F0FF; }
+
+        .glass-panel {
+            background: rgba(17, 24, 39, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        /* VFX Canvas styling */
+        #vfx-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col font-sans">
+
+    <!-- VFX Background Canvas -->
+    <canvas id="vfx-canvas"></canvas>
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 glass-panel border-b-0 border-white/10 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <a href="#" class="text-2xl font-bold font-mono text-white tracking-tighter hover:text-brand-cyan transition-colors duration-300">
+                        &lt;Code<span class="text-brand-cyan">211</span>/&gt;
+                    </a>
+                </div>
+                <div class="hidden lg:block">
+                    <div class="ml-10 flex items-baseline space-x-6">
+                        <a href="#about" class="hover:text-brand-cyan transition-colors text-sm font-medium">About</a>
+                        <a href="#schedule" class="hover:text-brand-cyan transition-colors text-sm font-medium">Schedule</a>
+                        <a href="#workshops" class="hover:text-brand-cyan transition-colors text-sm font-medium">Workshops</a>
+                        <a href="#activities" class="hover:text-brand-cyan transition-colors text-sm font-medium">Activities</a>
+                        <a href="#faq" class="hover:text-brand-cyan transition-colors text-sm font-medium">FAQs</a>
+                    </div>
+                </div>
+                <div>
+                    <a href="https://discord.com/invite/ZEvmePbwHZ" target="_blank" rel="noopener noreferrer" class="mr-4 hidden md:inline-flex items-center gap-2 text-gray-400 hover:text-brand-purple transition-colors text-sm font-mono">
+                        <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.927 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
+                        Join_Discord
+                    </a>
+                    <a href="https://forms.gle/VsPcdLLHyAyAwYf1A" target="_blank" rel="noopener noreferrer" class="bg-brand-cyan text-brand-dark px-4 py-2 rounded-md font-bold font-mono text-sm hover:bg-white hover:scale-105 transition-all shadow-[0_0_15px_rgba(0,240,255,0.4)] inline-block">
+                        Register
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <main class="flex-grow flex items-center justify-center pt-28 pb-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+        <!-- Decorative blurred orbs -->
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-brand-purple/20 rounded-full blur-[100px] -z-10"></div>
+        <div class="absolute top-1/2 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-brand-cyan/10 rounded-full blur-[80px] -z-10"></div>
+
+        <div class="text-center max-w-4xl z-10">
+            <div class="inline-block mb-4 px-3 py-1 rounded-full border border-brand-cyan/30 bg-brand-cyan/10 text-brand-cyan text-xs font-mono font-semibold tracking-wider">
+                TOWNSHIP HIGH SCHOOL DISTRICT 211
+            </div>
+            
+            <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight mb-4">
+                <span class="block text-transparent bg-clip-text bg-gradient-to-r from-brand-cyan to-brand-purple">
+                    Build. Learn. Compete.
+                </span>
+            </h1>
+            
+            <p class="mt-2 text-xl md:text-2xl text-white font-mono mb-6">
+                January 23
+            </p>
+
+            <!-- Countdown Timer -->
+            <div id="countdown" class="flex flex-wrap justify-center gap-4 mb-8">
+                <div class="glass-panel p-4 rounded-xl text-center w-24">
+                    <div id="cd-days" class="text-3xl font-bold text-brand-cyan font-mono">00</div>
+                    <div class="text-[10px] text-gray-400 uppercase tracking-widest mt-1">Days</div>
+                </div>
+                <div class="glass-panel p-4 rounded-xl text-center w-24">
+                    <div id="cd-hours" class="text-3xl font-bold text-brand-cyan font-mono">00</div>
+                    <div class="text-[10px] text-gray-400 uppercase tracking-widest mt-1">Hours</div>
+                </div>
+                <div class="glass-panel p-4 rounded-xl text-center w-24">
+                    <div id="cd-mins" class="text-3xl font-bold text-brand-cyan font-mono">00</div>
+                    <div class="text-[10px] text-gray-400 uppercase tracking-widest mt-1">Mins</div>
+                </div>
+                <div class="glass-panel p-4 rounded-xl text-center w-24">
+                    <div id="cd-secs" class="text-3xl font-bold text-brand-cyan font-mono">00</div>
+                    <div class="text-[10px] text-gray-400 uppercase tracking-widest mt-1">Secs</div>
+                </div>
+            </div>
+
+            <p class="text-lg text-gray-300 mb-10 max-w-2xl mx-auto leading-relaxed">
+                A 12-hour student-led hackathon. <strong>Work solo or in groups of up to 4</strong> to build software projects, learn technical skills, and win amazing prizes.
+            </p>
+        </div>
+    </main>
+
+    <!-- Important Quick Links -->
+    <section class="py-10 bg-brand-cyan/5 border-y border-brand-cyan/20 relative z-10">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 class="text-xl md:text-2xl font-bold font-mono text-white mb-6 tracking-wide">IMPORTANT QUICK LINKS</h2>
+            <div class="flex flex-wrap justify-center gap-4">
+                <!-- Active Link -->
+                <a href="https://forms.gle/VsPcdLLHyAyAwYf1A" target="_blank" rel="noopener noreferrer" class="px-6 py-3 bg-brand-cyan text-brand-dark font-bold font-mono rounded hover:bg-white transition-all shadow-[0_0_15px_rgba(0,240,255,0.4)]">
+                    &gt; Sign_Up_Form
+                </a>
+                <!-- Future/Disabled Links -->
+                <div class="px-6 py-3 border border-gray-600 bg-gray-800/50 text-gray-500 font-mono rounded cursor-not-allowed" title="Will open closer to the event!">
+                    Teams (Coming Soon)
+                </div>
+                <div class="px-6 py-3 border border-gray-600 bg-gray-800/50 text-gray-500 font-mono rounded cursor-not-allowed" title="Will open closer to the event!">
+                    Judging Order (Coming Soon)
+                </div>
+            </div>
+            <p class="mt-4 text-sm text-gray-500 font-mono">* Check back here on event day for more portal links.</p>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="py-20 relative z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold font-mono text-white mb-4">&lt;About_Event/&gt;</h2>
+                <div class="w-20 h-1 bg-gradient-to-r from-brand-cyan to-brand-purple mx-auto rounded-full"></div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="glass-panel p-8 rounded-2xl hover:-translate-y-2 transition-transform duration-300">
+                    <div class="text-brand-cyan text-4xl mb-4 font-mono">01.</div>
+                    <h3 class="text-xl font-bold mb-3">12 Hours of Creation</h3>
+                    <p class="text-gray-400">Bring your wildest ideas to life. Whether it's a game, an app, or a website, you have 12 hours to build something amazing from scratch.</p>
+                </div>
+                <div class="glass-panel p-8 rounded-2xl hover:-translate-y-2 transition-transform duration-300">
+                    <div class="text-brand-purple text-4xl mb-4 font-mono">02.</div>
+                    <h3 class="text-xl font-bold mb-3">Learn New Skills</h3>
+                    <p class="text-gray-400">No experience? No problem. We host beginner-friendly workshops on web dev, game design, and more throughout the day.</p>
+                </div>
+                <div class="glass-panel p-8 rounded-2xl hover:-translate-y-2 transition-transform duration-300">
+                    <div class="text-brand-cyan text-4xl mb-4 font-mono">03.</div>
+                    <h3 class="text-xl font-bold mb-3">Win Awesome Prizes</h3>
+                    <p class="text-gray-400">Present your final project to our panel of judges for a chance to win cool tech prizes, swag, and ultimate bragging rights.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Schedule Section (TBA) -->
+    <section id="schedule" class="py-20 bg-brand-dark/50 border-t border-white/5 relative z-10">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 class="text-3xl md:text-4xl font-bold font-mono text-white mb-4">Schedule</h2>
+            <div class="w-20 h-1 bg-gradient-to-r from-brand-cyan to-brand-purple mx-auto rounded-full mb-10"></div>
+            
+            <div class="glass-panel p-10 rounded-2xl border-dashed border-2 border-brand-purple/30">
+                <div class="text-5xl mb-4 opacity-50">🕒</div>
+                <h3 class="text-2xl font-bold text-white mb-2">Schedule is TBA</h3>
+                <p class="text-gray-400 text-lg">
+                    We are currently finalizing the timeline for January 23. <br>
+                    Expect a full 12-hour itinerary of coding, workshops, and fun. Check back soon!
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Workshops Section (TBA) -->
+    <section id="workshops" class="py-20 relative z-10">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 class="text-3xl md:text-4xl font-bold font-mono text-white mb-4">Workshops</h2>
+            <div class="w-20 h-1 bg-gradient-to-r from-brand-cyan to-brand-purple mx-auto rounded-full mb-10"></div>
+            
+            <div class="glass-panel p-10 rounded-2xl border-dashed border-2 border-brand-cyan/30">
+                <div class="text-5xl mb-4 opacity-50">💻</div>
+                <h3 class="text-2xl font-bold text-white mb-2">Workshops Coming Soon</h3>
+                <p class="text-gray-400 text-lg">
+                    Whether you are an absolute beginner or a coding pro, we'll have sessions tailored for you. Topics and speaker line-ups will be announced shortly.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Activities Section (TBA) -->
+    <section id="activities" class="py-20 bg-brand-dark/50 border-t border-white/5 relative z-10">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 class="text-3xl md:text-4xl font-bold font-mono text-white mb-4">Activities</h2>
+            <div class="w-20 h-1 bg-gradient-to-r from-brand-cyan to-brand-purple mx-auto rounded-full mb-10"></div>
+            
+            <div class="glass-panel p-10 rounded-2xl border-dashed border-2 border-brand-purple/30">
+                <div class="text-5xl mb-4 opacity-50">🎮</div>
+                <h3 class="text-2xl font-bold text-white mb-2">Fun & Games TBA</h3>
+                <p class="text-gray-400 text-lg">
+                    Need a break from the screen? We're planning typing tests, gaming tournaments, and more. Activity schedule dropping soon!
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section id="faq" class="py-20 relative z-10">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold font-mono text-white mb-4">FAQs</h2>
+                <div class="w-20 h-1 bg-gradient-to-r from-brand-cyan to-brand-purple mx-auto rounded-full"></div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="glass-panel p-6 rounded-lg">
+                    <h4 class="text-lg font-bold text-brand-cyan mb-2">Who can attend?</h4>
+                    <p class="text-gray-400 text-sm">Any high school student currently enrolled in Township High School District 211.</p>
+                </div>
+                <div class="glass-panel p-6 rounded-lg">
+                    <h4 class="text-lg font-bold text-brand-purple mb-2">Do I need coding experience?</h4>
+                    <p class="text-gray-400 text-sm">Not at all! We will have workshops and mentors available to help you learn and build your first project.</p>
+                </div>
+                <div class="glass-panel p-6 rounded-lg">
+                    <h4 class="text-lg font-bold text-brand-cyan mb-2">How much does it cost?</h4>
+                    <p class="text-gray-400 text-sm">Code211 is 100% free! Food, drinks, and swag will be provided.</p>
+                </div>
+                <div class="glass-panel p-6 rounded-lg">
+                    <h4 class="text-lg font-bold text-brand-purple mb-2">Do I need a team?</h4>
+                    <p class="text-gray-400 text-sm">You can hack solo, or form a team of up to 4 people. If you don't have a team, we'll have a session at the start to help you find one!</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer / Contact Us Section -->
+    <footer id="contact" class="pt-16 pb-8 border-t border-white/10 relative z-10 bg-brand-dark">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
+                <!-- Branding -->
+                <div class="text-center md:text-left">
+                    <div class="text-2xl font-bold font-mono text-white tracking-tighter mb-2">
+                        &lt;Code<span class="text-brand-cyan">211</span>/&gt;
+                    </div>
+                    <p class="text-gray-500 text-sm">
+                        Built by students, for students.<br>
+                        Township High School District 211.
+                    </p>
+                </div>
+
+                <!-- Contact -->
+                <div class="text-center md:text-left">
+                    <h4 class="text-lg font-bold text-white mb-4">Contact Us</h4>
+                    <p class="text-gray-400 text-sm mb-3">
+                        Have questions? Reach out to our organizing team and we'll get back to you as soon as possible.
+                    </p>
+                    <a href="mailto:hackathon.d211@gmail.com" class="text-brand-cyan hover:text-white transition-colors font-mono text-sm underline underline-offset-4">
+                        hackathon.d211@gmail.com
+                    </a>
+                </div>
+
+                <!-- Socials -->
+                <div class="text-center md:text-right">
+                    <h4 class="text-lg font-bold text-white mb-4">Follow Us</h4>
+                    <div class="flex flex-col items-center md:items-end space-y-3">
+                        <a href="https://discord.com/invite/ZEvmePbwHZ" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-brand-purple transition-colors flex items-center gap-2">
+                            <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.927 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
+                            <span class="font-mono text-sm">Discord Server</span>
+                        </a>
+                        <a href="https://www.instagram.com/official_code211/" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-brand-purple transition-colors flex items-center gap-2">
+                            <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                            <span class="font-mono text-sm">Instagram</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center border-t border-white/10 pt-8">
+                <p class="text-gray-600 font-mono text-xs">
+                    &copy; <span id="year">2024</span> Code211. All rights reserved.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript logic (VFX + Countdown) -->
+    <script>
+        // Update Copyright Year
+        document.getElementById('year').textContent = new Date().getFullYear();
+
+        // -------------------------
+        // COUNTDOWN TIMER LOGIC
+        // -------------------------
+        function initCountdown() {
+            const daysEl = document.getElementById('cd-days');
+            const hoursEl = document.getElementById('cd-hours');
+            const minsEl = document.getElementById('cd-mins');
+            const secsEl = document.getElementById('cd-secs');
+
+            function update() {
+                const now = new Date();
+                let targetYear = now.getFullYear();
+                // Set target to Jan 23 of current year
+                let targetDate = new Date(`January 23, ${targetYear} 08:00:00`);
+                
+                // If Jan 23 has passed this year, look forward to next year
+                if (now > targetDate) {
+                    targetDate = new Date(`January 23, ${targetYear + 1} 08:00:00`);
+                }
+                
+                const diff = targetDate - now;
+                
+                if (diff > 0) {
+                    const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+                    const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
+                    const m = Math.floor((diff / 1000 / 60) % 60);
+                    const s = Math.floor((diff / 1000) % 60);
+                    
+                    daysEl.textContent = d.toString().padStart(2, '0');
+                    hoursEl.textContent = h.toString().padStart(2, '0');
+                    minsEl.textContent = m.toString().padStart(2, '0');
+                    secsEl.textContent = s.toString().padStart(2, '0');
+                }
+            }
+            // Run every second
+            setInterval(update, 1000);
+            update(); // run immediately on load
+        }
+        initCountdown();
+
+        // -------------------------
+        // VFX PARTICLE NETWORK
+        // -------------------------
+        const canvas = document.getElementById('vfx-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        let width, height;
+        let particles = [];
+        
+        // Settings for VFX
+        const particleCount = 70;
+        const connectionDistance = 150;
+        const mouseRadius = 200;
+        
+        let mouse = { x: null, y: null };
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        window.addEventListener('mousemove', (e) => {
+            mouse.x = e.x;
+            mouse.y = e.y;
+        });
+        
+        window.addEventListener('mouseout', () => {
+            mouse.x = null;
+            mouse.y = null;
+        });
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.vx = (Math.random() - 0.5) * 1; 
+                this.vy = (Math.random() - 0.5) * 1; 
+                this.radius = Math.random() * 2 + 1;
+            }
+
+            update() {
+                if (this.x < 0 || this.x > width) this.vx *= -1;
+                if (this.y < 0 || this.y > height) this.vy *= -1;
+                this.x += this.vx;
+                this.y += this.vy;
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(0, 240, 255, 0.5)';
+                ctx.fill();
+            }
+        }
+
+        for (let i = 0; i < particleCount; i++) {
+            particles.push(new Particle());
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+            
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+                particles[i].draw();
+                
+                for (let j = i; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < connectionDistance) {
+                        ctx.beginPath();
+                        ctx.strokeStyle = `rgba(138, 43, 226, ${1 - distance / connectionDistance})`;
+                        ctx.lineWidth = 1;
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.stroke();
+                    }
+                }
+                
+                if (mouse.x != null && mouse.y != null) {
+                    const dx = particles[i].x - mouse.x;
+                    const dy = particles[i].y - mouse.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < mouseRadius) {
+                        ctx.beginPath();
+                        ctx.strokeStyle = `rgba(0, 240, 255, ${1 - distance / mouseRadius})`;
+                        ctx.lineWidth = 1.5;
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(mouse.x, mouse.y);
+                        ctx.stroke();
+                    }
+                }
+            }
+            requestAnimationFrame(animate);
+        }
+        animate();
+    </script>
+</body>
+</html>

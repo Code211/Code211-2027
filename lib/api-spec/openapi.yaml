@@ -10,6 +10,14 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: registrations
+    description: Hackathon registration operations
+  - name: announcements
+    description: Live event announcements
+  - name: schedule
+    description: Schedule and workshop content
+  - name: dashboard
+    description: Registration dashboard summary
 paths:
   /healthz:
     get:
@@ -24,7 +32,161 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /registrations:
+    post:
+      operationId: createRegistration
+      tags: [registrations]
+      summary: Submit a participant or team registration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegistrationInput"
+      responses:
+        "201":
+          description: Registration created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Registration"
+        "400":
+          description: Invalid registration
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /announcements:
+    get:
+      operationId: listAnnouncements
+      tags: [announcements]
+      summary: List current event announcements
+      responses:
+        "200":
+          description: Current announcements
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Announcement"
+    post:
+      operationId: createAnnouncement
+      tags: [announcements]
+      summary: Create an announcement (organizer only)
+      parameters:
+        - $ref: "#/components/parameters/AdminKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AnnouncementInput"
+      responses:
+        "201":
+          description: Announcement created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Announcement"
+        "401":
+          description: Organizer key required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      operationId: updateAnnouncement
+      tags: [announcements]
+      summary: Update an announcement (organizer only)
+      parameters:
+        - $ref: "#/components/parameters/AdminKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AnnouncementUpdate"
+      responses:
+        "200":
+          description: Announcement updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Announcement"
+        "401":
+          description: Organizer key required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Announcement not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /announcements/{id}:
+    delete:
+      operationId: deleteAnnouncement
+      tags: [announcements]
+      summary: Delete an announcement (organizer only)
+      parameters:
+        - $ref: "#/components/parameters/AdminKey"
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Announcement deleted
+        "401":
+          description: Organizer key required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Announcement not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /schedule:
+    get:
+      operationId: listScheduleItems
+      tags: [schedule]
+      summary: List schedule and workshop items
+      responses:
+        "200":
+          description: Event schedule
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ScheduleItem"
+  /dashboard:
+    get:
+      operationId: getDashboardSummary
+      tags: [dashboard]
+      summary: Get public dashboard summary
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
 components:
+  parameters:
+    AdminKey:
+      name: x-admin-key
+      in: header
+      required: true
+      schema:
+        type: string
   schemas:
     HealthStatus:
       type: object
@@ -33,4 +195,163 @@ components:
           type: string
       required:
         - status
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+    RegistrationInput:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 2
+        email:
+          type: string
+          pattern: "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$"
+        school:
+          type: string
+          minLength: 2
+        grade:
+          type: string
+        teamName:
+          type: ["string", "null"]
+        teamSize:
+          type: integer
+          minimum: 1
+          maximum: 4
+        experience:
+          type: string
+        projectIdea:
+          type: ["string", "null"]
+        dietaryNeeds:
+          type: ["string", "null"]
+      required:
+        - name
+        - email
+        - school
+        - grade
+        - teamSize
+        - experience
+    Registration:
+      allOf:
+        - $ref: "#/components/schemas/RegistrationInput"
+        - type: object
+          properties:
+            id:
+              type: integer
+            createdAt:
+              type: string
+              format: date-time
+          required:
+            - id
+            - createdAt
+    Announcement:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        body:
+          type: string
+        label:
+          type: string
+        publishedAt:
+          type: string
+          format: date-time
+        isPinned:
+          type: boolean
+      required:
+        - id
+        - title
+        - body
+        - label
+        - publishedAt
+        - isPinned
+    AnnouncementInput:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 2
+        body:
+          type: string
+          minLength: 2
+        label:
+          type: string
+          minLength: 2
+        isPinned:
+          type: boolean
+      required:
+        - title
+        - body
+        - label
+        - isPinned
+    AnnouncementUpdate:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+          minLength: 2
+        body:
+          type: string
+          minLength: 2
+        label:
+          type: string
+          minLength: 2
+        isPinned:
+          type: boolean
+      required:
+        - id
+        - title
+        - body
+        - label
+        - isPinned
+    ScheduleItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        startTime:
+          type: string
+        endTime:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        kind:
+          type: string
+          enum: [event, workshop, break, judging]
+        location:
+          type: string
+      required:
+        - id
+        - startTime
+        - endTime
+        - title
+        - description
+        - kind
+        - location
+    DashboardSummary:
+      type: object
+      properties:
+        registrationCount:
+          type: integer
+        teamCount:
+          type: integer
+        announcementCount:
+          type: integer
+        nextEvent:
+          $ref: "#/components/schemas/ScheduleItem"
+      required:
+        - registrationCount
+        - teamCount
+        - announcementCount
+        - nextEvent
 

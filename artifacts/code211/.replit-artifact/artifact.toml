@@ -1,0 +1,27 @@
+kind = "web"
+previewPath = "/"
+title = "Code211 Hackathon"
+version = "1.0.0"
+id = "artifacts/code211"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 24899
+
+[services.development]
+run = "pnpm --filter @workspace/code211 run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/code211", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/code211/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "24899"
+BASE_PATH = "/"

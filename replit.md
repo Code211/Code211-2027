@@ -1,6 +1,6 @@
-# [Project name]
+# Code211 Hackathon
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+Student-run District 211 hackathon site with registration, schedule, FAQ, and a live announcements dashboard.
 
 ## Run & Operate
 
@@ -22,15 +22,22 @@ _Replace the heading above with the project's name, and this line with one sente
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `artifacts/code211/src/App.tsx` — routed frontend pages and shared navigation/footer
+- `artifacts/code211/src/index.css` — Code211 visual tokens and responsive styles
+- `lib/api-spec/openapi.yaml` — source of truth for backend contracts
+- `lib/db/src/schema/` — PostgreSQL schema for registrations, announcements, and schedule
+- `artifacts/api-server/src/routes/` — API handlers
+- `netlify.toml` and `netlify/functions/api.ts` — Netlify static hosting and production function adapter
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- Preview uses the shared API server and Replit PostgreSQL; Netlify uses the function adapter backed by Supabase REST.
+- Public dashboard endpoints expose aggregate registration data only; participant records are never listed publicly.
+- OpenAPI is the contract source and generated client/Zod packages are used by both frontend and backend.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+Visitors can learn about the hackathon, view the live schedule and workshops, search FAQs, register individually or with a team, and monitor public event updates and aggregate participation totals.
 
 ## User preferences
 
