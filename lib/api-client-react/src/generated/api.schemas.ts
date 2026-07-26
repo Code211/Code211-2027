@@ -13,6 +13,19 @@ export interface ErrorResponse {
   error: string;
 }
 
+export type RegistrationInputTShirtSize = typeof RegistrationInputTShirtSize[keyof typeof RegistrationInputTShirtSize];
+
+
+export const RegistrationInputTShirtSize = {
+  Youth_S: 'Youth S',
+  Youth_M: 'Youth M',
+  Youth_L: 'Youth L',
+  Adult_S: 'Adult S',
+  Adult_M: 'Adult M',
+  Adult_L: 'Adult L',
+  Adult_XL: 'Adult XL',
+} as const;
+
 export interface RegistrationInput {
   /** @minLength 2 */
   name: string;
@@ -20,7 +33,6 @@ export interface RegistrationInput {
   email: string;
   /** @minLength 2 */
   school: string;
-  grade: string;
   /** @nullable */
   teamName?: string | null;
   /**
@@ -29,16 +41,15 @@ export interface RegistrationInput {
      */
   teamSize: number;
   experience: string;
-  /** @nullable */
-  projectIdea?: string | null;
+  tShirtSize: RegistrationInputTShirtSize;
   /** @nullable */
   dietaryNeeds?: string | null;
 }
 
-export type Registration = RegistrationInput & {
-  id: number;
-  createdAt: string;
-};
+export interface RegistrationSubmissionResponse {
+  success: boolean;
+  message: string;
+}
 
 export interface Announcement {
   id: number;
@@ -94,7 +105,7 @@ export interface DashboardSummary {
   registrationCount: number;
   teamCount: number;
   announcementCount: number;
-  nextEvent: ScheduleItem;
+  nextEvent: ScheduleItem | null;
 }
 
 export type AdminKeyParameter = string;

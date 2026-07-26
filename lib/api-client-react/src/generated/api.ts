@@ -26,8 +26,8 @@ import type {
   DashboardSummary,
   ErrorResponse,
   HealthStatus,
-  Registration,
   RegistrationInput,
+  RegistrationSubmissionResponse,
   ScheduleItem
 } from './api.schemas';
 
@@ -147,9 +147,9 @@ export const getCreateRegistrationUrl = () => {
 /**
  * @summary Submit a participant or team registration
  */
-export const createRegistration = async (registrationInput: RegistrationInput, options?: RequestInit): Promise<Registration> => {
+export const createRegistration = async (registrationInput: RegistrationInput, options?: RequestInit): Promise<RegistrationSubmissionResponse> => {
 
-  return customFetch<Registration>(getCreateRegistrationUrl(),
+  return customFetch<RegistrationSubmissionResponse>(getCreateRegistrationUrl(),
   {
     ...options,
     method: 'POST',

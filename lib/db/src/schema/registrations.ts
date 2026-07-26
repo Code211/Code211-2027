@@ -11,7 +11,7 @@ export const registrationsTable = pgTable("registrations", {
   teamName: text("team_name"),
   teamSize: integer("team_size").notNull(),
   experience: text("experience").notNull(),
-  projectIdea: text("project_idea"),
+  tShirtSize: text("t_shirt_size").notNull().default("Adult M"),
   dietaryNeeds: text("dietary_needs"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });

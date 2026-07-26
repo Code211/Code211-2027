@@ -4,13 +4,16 @@ type RegistrationInput = {
   name: string;
   email: string;
   school: string;
-  grade: string;
   teamName?: string | null;
   teamSize: number;
   experience: string;
-  projectIdea?: string | null;
+  tShirtSize: string;
   dietaryNeeds?: string | null;
 };
+
+const GOOGLE_APPS_SCRIPT_URL =
+  process.env.GOOGLE_APPS_SCRIPT_URL ??
+  "https://script.google.com/macros/s/AKfycbxR9lESLI40p-KXvIxzJZl4Js8CmbMkEys94S_NTPcn6SS5HHk2ZwKUAxhJ2H-LxJM/exec";
 
 const json = (statusCode: number, body: unknown) => ({
   statusCode,
@@ -58,31 +61,34 @@ export const handler: Handler = async (event) => {
 
     if (path === "registrations" && method === "POST") {
       const body = JSON.parse(event.body ?? "{}") as RegistrationInput;
-      if (!body.name || !body.email || !body.school || !body.grade || !body.teamSize || !body.experience) {
+      if (!body.name || !body.email || !body.school || !body.teamSize || !body.experience || !body.tShirtSize) {
         return json(400, { error: "Please complete all required fields." });
       }
-      const [registration] = await supabaseRequest("registrations", {
+      const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
         method: "POST",
+        headers: { "content-type": "application/json" },
         body: JSON.stringify({
+          school: body.school,
           name: body.name,
           email: body.email,
-          school: body.school,
-          grade: body.grade,
-          team_name: body.teamName ?? null,
-          team_size: body.teamSize,
+          teamName: body.teamName ?? "",
+          teamSize: body.teamSize,
           experience: body.experience,
-          project_idea: body.projectIdea ?? null,
-          dietary_needs: body.dietaryNeeds ?? null,
+          tShirtSize: body.tShirtSize,
+          dietaryNeeds: body.dietaryNeeds ?? "",
         }),
       });
-      return json(201, {
-        ...registration,
-        teamName: registration.team_name,
-        teamSize: registration.team_size,
-        projectIdea: registration.project_idea,
-        dietaryNeeds: registration.dietary_needs,
-        createdAt: registration.created_at,
-      });
+      const responseText = await response.text();
+      let responseBody: { success?: boolean; message?: string } = {};
+      try {
+        responseBody = responseText ? JSON.parse(responseText) : {};
+      } catch {
+        // Apps Script may return a non-JSON success page after accepting the request.
+      }
+      if (!response.ok || responseBody.success === false) {
+        return json(502, { error: "Registration could not be sent to the event organizers. Please try again." });
+      }
+      return json(201, { success: true, message: responseBody.message ?? "Registration submitted successfully." });
     }
 
     if (path === "announcements" && method === "GET") {

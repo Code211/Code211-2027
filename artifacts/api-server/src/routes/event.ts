@@ -34,7 +34,7 @@ router.get("/dashboard", async (_req, res): Promise<void> => {
     registrationCount: Number(registrationCount),
     teamCount: teamNames.size,
     announcementCount: Number(announcementCount),
-    nextEvent,
+    nextEvent: nextEvent ?? null,
   }));
 });
 

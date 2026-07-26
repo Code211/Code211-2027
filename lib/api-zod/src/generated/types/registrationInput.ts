@@ -5,6 +5,7 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { RegistrationInputTShirtSize } from './registrationInputTShirtSize';
 
 export interface RegistrationInput {
   /** @minLength 2 */
@@ -13,7 +14,6 @@ export interface RegistrationInput {
   email: string;
   /** @minLength 2 */
   school: string;
-  grade: string;
   /** @nullable */
   teamName?: string | null;
   /**
@@ -22,8 +22,7 @@ export interface RegistrationInput {
      */
   teamSize: number;
   experience: string;
-  /** @nullable */
-  projectIdea?: string | null;
+  tShirtSize: RegistrationInputTShirtSize;
   /** @nullable */
   dietaryNeeds?: string | null;
 }

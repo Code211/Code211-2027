@@ -33,37 +33,17 @@ export const CreateRegistrationBody = zod.object({
   "name": zod.string().min(createRegistrationBodyNameMin),
   "email": zod.string().regex(createRegistrationBodyEmailRegExp),
   "school": zod.string().min(createRegistrationBodySchoolMin),
-  "grade": zod.string(),
   "teamName": zod.string().nullish(),
   "teamSize": zod.number().min(1).max(createRegistrationBodyTeamSizeMax),
   "experience": zod.string(),
-  "projectIdea": zod.string().nullish(),
+  "tShirtSize": zod.enum(['Youth S', 'Youth M', 'Youth L', 'Adult S', 'Adult M', 'Adult L', 'Adult XL']),
   "dietaryNeeds": zod.string().nullish()
 })
 
-export const createRegistrationResponseOneNameMin = 2;
-
-export const createRegistrationResponseOneEmailRegExp = new RegExp('^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$');
-export const createRegistrationResponseOneSchoolMin = 2;
-
-export const createRegistrationResponseOneTeamSizeMax = 4;
-
-
-
 export const CreateRegistrationResponse = zod.object({
-  "name": zod.string().min(createRegistrationResponseOneNameMin),
-  "email": zod.string().regex(createRegistrationResponseOneEmailRegExp),
-  "school": zod.string().min(createRegistrationResponseOneSchoolMin),
-  "grade": zod.string(),
-  "teamName": zod.string().nullish(),
-  "teamSize": zod.number().min(1).max(createRegistrationResponseOneTeamSizeMax),
-  "experience": zod.string(),
-  "projectIdea": zod.string().nullish(),
-  "dietaryNeeds": zod.string().nullish()
-}).and(zod.object({
-  "id": zod.number(),
-  "createdAt": zod.coerce.date()
-}))
+  "success": zod.boolean(),
+  "message": zod.string()
+})
 
 
 /**
@@ -181,7 +161,7 @@ export const GetDashboardSummaryResponse = zod.object({
   "registrationCount": zod.number(),
   "teamCount": zod.number(),
   "announcementCount": zod.number(),
-  "nextEvent": zod.object({
+  "nextEvent": zod.union([zod.object({
   "id": zod.number(),
   "startTime": zod.string(),
   "endTime": zod.string(),
@@ -189,7 +169,7 @@ export const GetDashboardSummaryResponse = zod.object({
   "description": zod.string(),
   "kind": zod.enum(['event', 'workshop', 'break', 'judging']),
   "location": zod.string()
-})
+}),zod.null()])
 })
 
 

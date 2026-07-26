@@ -11,5 +11,5 @@ export interface DashboardSummary {
   registrationCount: number;
   teamCount: number;
   announcementCount: number;
-  nextEvent: ScheduleItem;
+  nextEvent: ScheduleItem | null;
 }

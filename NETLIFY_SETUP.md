@@ -6,19 +6,40 @@ The site is configured to build from the repository root with:
 pnpm --filter @workspace/code211 run build
 ```
 
-## Production data
+## Registration delivery
 
-The Replit preview uses the shared API server and PostgreSQL database. Netlify runs the small adapter in `netlify/functions/api.ts`, which uses Supabase REST so registration and event content continue to work after a static deploy.
+Registration data is not stored in PostgreSQL or Supabase. The frontend posts to `/api/registrations`, and the preview API or Netlify function forwards the request to the Google Apps Script web app.
 
-1. Create a Supabase project and create these tables:
-   - `registrations`: `id`, `name`, `email`, `school`, `grade`, `team_name`, `team_size`, `experience`, `project_idea`, `dietary_needs`, `created_at`
-   - `announcements`: `id`, `title`, `body`, `label`, `published_at`, `is_pinned`
-   - `schedule_items`: `id`, `start_time`, `end_time`, `title`, `description`, `kind`, `location`
-2. Enable the REST API for those tables and add appropriate row-level security policies. Use a service-role key only in Netlify environment variables; never commit it.
-3. In Netlify, add:
-   - `SUPABASE_URL`
-   - `SUPABASE_SERVICE_ROLE_KEY`
-4. Add `ORGANIZER_ADMIN_KEY` in Netlify environment variables. The same key is sent as the `x-admin-key` header for announcement create/update/delete actions.
-5. Deploy. `netlify.toml` handles the `/api/*` function rewrite and SPA fallback for clean routes.
+The default Apps Script URL is configured in:
 
-The preview API's organizer write endpoints are protected by `ORGANIZER_ADMIN_KEY` (falling back to the existing server session secret for local use). The Netlify function exposes the same announcement write behavior and keeps the Supabase service-role key server-side.
+- `artifacts/api-server/src/routes/registrations.ts` for Replit preview
+- `netlify/functions/api.ts` for Netlify
+
+To override it without editing code, set `GOOGLE_APPS_SCRIPT_URL` in the target environment. The Apps Script endpoint should accept a JSON `POST` containing exactly:
+
+```json
+{
+  "school": "...",
+  "name": "...",
+  "email": "...",
+  "teamName": "...",
+  "teamSize": 1,
+  "experience": "...",
+  "tShirtSize": "Adult M",
+  "dietaryNeeds": "..."
+}
+```
+
+The endpoint should return HTTP 2xx and preferably JSON such as:
+
+```json
+{ "success": true, "message": "Registration submitted successfully." }
+```
+
+The site shows a confirmation only when the Apps Script request succeeds. If the Apps Script endpoint rejects the request or is unavailable, the form shows a retryable error and no local registration record is created.
+
+## Other production data
+
+Announcements and schedule content can continue using the existing Netlify data adapter. Add the required Supabase configuration only if those live content features are used in production.
+
+The preview API's organizer write endpoints are protected by `ORGANIZER_ADMIN_KEY` (falling back to the existing server session secret for local use). The Netlify function exposes the same announcement write behavior.

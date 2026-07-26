@@ -45,11 +45,11 @@ paths:
               $ref: "#/components/schemas/RegistrationInput"
       responses:
         "201":
-          description: Registration created
+          description: Registration submitted to the event registration service
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Registration"
+                $ref: "#/components/schemas/RegistrationSubmissionResponse"
         "400":
           description: Invalid registration
           content:
@@ -214,8 +214,6 @@ components:
         school:
           type: string
           minLength: 2
-        grade:
-          type: string
         teamName:
           type: ["string", "null"]
         teamSize:
@@ -224,30 +222,28 @@ components:
           maximum: 4
         experience:
           type: string
-        projectIdea:
-          type: ["string", "null"]
+        tShirtSize:
+          type: string
+          enum: [Youth S, Youth M, Youth L, Adult S, Adult M, Adult L, Adult XL]
         dietaryNeeds:
           type: ["string", "null"]
       required:
         - name
         - email
         - school
-        - grade
         - teamSize
         - experience
-    Registration:
-      allOf:
-        - $ref: "#/components/schemas/RegistrationInput"
-        - type: object
-          properties:
-            id:
-              type: integer
-            createdAt:
-              type: string
-              format: date-time
-          required:
-            - id
-            - createdAt
+        - tShirtSize
+    RegistrationSubmissionResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+      required:
+        - success
+        - message
     Announcement:
       type: object
       properties:
@@ -348,7 +344,9 @@ components:
         announcementCount:
           type: integer
         nextEvent:
-          $ref: "#/components/schemas/ScheduleItem"
+          oneOf:
+            - $ref: "#/components/schemas/ScheduleItem"
+            - type: "null"
       required:
         - registrationCount
         - teamCount
