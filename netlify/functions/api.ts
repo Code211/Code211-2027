@@ -64,9 +64,9 @@ export const handler: Handler = async (event) => {
       if (!body.name || !body.email || !body.school || !body.teamSize || !body.experience || !body.tShirtSize) {
         return json(400, { error: "Please complete all required fields." });
       }
-      const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+      const response = await          fetch(GOOGLE_APPS_SCRIPT_URL, {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: { "content-type": "text/plain;charset=utf-8" }, // Google Apps Script handles text/plain better to avoid preflight issues
         body: JSON.stringify({
           school: body.school,
           name: body.name,
@@ -77,7 +77,9 @@ export const handler: Handler = async (event) => {
           tShirtSize: body.tShirtSize,
           dietaryNeeds: body.dietaryNeeds ?? "",
         }),
+        redirect: "follow", // <--- ADD THIS LINE
       });
+
       const responseText = await response.text();
       let responseBody: { success?: boolean; message?: string } = {};
       try {
