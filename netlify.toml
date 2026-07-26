@@ -5,6 +5,8 @@
 
 [build.environment]
   NODE_VERSION = "20"
+  PORT = "4173"
+  BASE_PATH = "/"
 
 [[redirects]]
   from = "/api/*"
