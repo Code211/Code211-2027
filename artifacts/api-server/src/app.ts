@@ -5,6 +5,7 @@ import router from "./routes";
 import { logger } from "./lib/logger";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import fs from "node:fs";
 
 const app: Express = express();
 
@@ -34,31 +35,58 @@ app.use(express.urlencoded({ extended: true }));
 // API routes MUST be mounted before static serving so /api/* is handled by Express
 app.use("/api", router);
 
-// Serve production build of the Vite frontend when NODE_ENV=production
+// Resolve frontend dist directory robustly so it works when the server is running from
+// artifacts/api-server/dist (compiled) or when running from source in development.
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-// Vite build outputs to artifacts/code211/dist/public per vite.config.ts
-const clientDist = path.resolve(__dirname, "..", "..", "artifacts", "code211", "dist", "public");
+const candidates = [
+  // When running from source (ts): artifacts/api-server/src
+  path.resolve(__dirname, "..", "..", "artifacts", "code211", "dist", "public"),
+  // When running from compiled dist (js): artifacts/api-server/dist
+  path.resolve(__dirname, "..", "artifacts", "code211", "dist", "public"),
+  // Fallback to process.cwd()
+  path.resolve(process.cwd(), "artifacts", "code211", "dist", "public"),
+];
 
-if (process.env.NODE_ENV === "production") {
+let clientDist: string | null = null;
+let indexExists = false;
+for (const c of candidates) {
+  try {
+    const indexPath = path.join(c, "index.html");
+    if (fs.existsSync(indexPath)) {
+      clientDist = c;
+      indexExists = true;
+      break;
+    }
+  } catch {
+    // ignore
+  }
+}
+
+logger.info({ clientDist, indexExists }, "Resolved frontend directory");
+
+if (process.env.NODE_ENV === "production" && clientDist && indexExists) {
   app.use(express.static(clientDist));
 
-  // SPA fallback: serve index.html for non-API GET requests that accept HTML.
-  // Use middleware instead of a wildcard route so this works with Express 5 / path-to-regexp 8.
+  // SPA fallback: middleware-based, Express 5 compatible. Do not use path patterns that
+  // involve path-to-regexp. This middleware will only respond to GET/HEAD requests that
+  // accept HTML and will skip any path under /api so API routes are never swallowed.
   app.use((req, res, next) => {
-    // Do not interfere with API routes
+    // Never handle API routes here
     if (req.path.startsWith("/api")) return next();
 
-    // Only respond to GET/HEAD requests for HTML pages
+    // Only for navigation requests
     if (req.method !== "GET" && req.method !== "HEAD") return next();
 
     const accept = (req.headers.accept || "") as string;
     if (!accept.includes("text/html")) return next();
 
-    // Send the SPA entrypoint
-    res.sendFile(path.join(clientDist, "index.html"), (err) => {
+    const indexPath = path.join(clientDist!, "index.html");
+    res.sendFile(indexPath, (err) => {
       if (err) next(err);
     });
   });
+} else {
+  logger.warn({ clientDist, indexExists, nodeEnv: process.env.NODE_ENV }, "Frontend not served: production build not found or NODE_ENV!=production");
 }
 
 export default app;
