@@ -1,3 +1,4 @@
+```toml
 [build]
   command = "pnpm --filter @workspace/code211 run build"
   publish = "artifacts/code211/dist/public"
@@ -6,15 +7,19 @@
 [build.environment]
   NODE_VERSION = "20"
 
+[functions]
+  node_bundler = "esbuild"
+
+# API routes → Netlify Function
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/api/:splat"
   status = 200
+  force = true
 
+# Frontend routes → React app
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
-
-[functions]
-  node_bundler = "esbuild"
+```
