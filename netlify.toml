@@ -1,4 +1,4 @@
-```toml
+
 [build]
   command = "pnpm --filter @workspace/code211 run build"
   publish = "artifacts/code211/dist/public"
@@ -22,4 +22,4 @@
   from = "/*"
   to = "/index.html"
   status = 200
-```
+
