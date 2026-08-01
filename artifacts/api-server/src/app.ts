@@ -31,17 +31,18 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// API routes must be mounted before the static/frontend fallback so /api/* is handled by Express
+// API routes MUST be mounted before static serving so /api/* is handled by Express
 app.use("/api", router);
 
-// Serve the built frontend in production. We resolve the client dist relative to this file.
+// Serve production build of the Vite frontend when NODE_ENV=production
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const clientDist = path.resolve(__dirname, "..", "..", "code211", "dist", "public");
+// Vite build outputs to artifacts/code211/dist/public per vite.config.ts
+const clientDist = path.resolve(__dirname, "..", "..", "artifacts", "code211", "dist", "public");
 
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(clientDist));
 
-  // SPA fallback: serve index.html for any non-API route so client-side routing works on direct visits
+  // SPA fallback: for any non-API path, serve index.html so client-side routes work
   app.get("/*", (req, res) => {
     res.sendFile(path.join(clientDist, "index.html"));
   });
