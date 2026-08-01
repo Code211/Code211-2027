@@ -64,49 +64,31 @@ export const handler: Handler = async (event) => {
       if (!body.name || !body.email || !body.school || !body.teamSize || !body.experience || !body.tShirtSize) {
         return json(400, { error: "Please complete all required fields." });
       }
-
+      const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          school: body.school,
+          name: body.name,
+          email: body.email,
+          teamName: body.teamName ?? "",
+          teamSize: body.teamSize,
+          experience: body.experience,
+          tShirtSize: body.tShirtSize,
+          dietaryNeeds: body.dietaryNeeds ?? "",
+        }),
+      });
+      const responseText = await response.text();
+      let responseBody: { success?: boolean; message?: string } = {};
       try {
-        const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
-          method: "POST",
-          headers: { "content-type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({
-            school: body.school,
-            name: body.name,
-            email: body.email,
-            teamName: body.teamName ?? "",
-            teamSize: body.teamSize,
-            experience: body.experience,
-            tShirtSize: body.tShirtSize,
-            dietaryNeeds: body.dietaryNeeds ?? "",
-          }),
-          redirect: "follow",
-        });
-
-        const responseText = await response.text();
-        let responseBody: { result?: string; success?: boolean; message?: string } = {};
-
-        try {
-          responseBody = responseText ? JSON.parse(responseText) : {};
-        } catch {
-          // Google Apps Script often responds with an HTML page after following redirects; 
-          // If response.ok is true, we consider the execution successful.
-        }
-
-        // Check for explicit error responses
-        if (!response.ok || responseBody.result === "error" || responseBody.success === false) {
-          return json(502, { 
-            error: responseBody.message ?? "Registration could not be sent to the event organizers. Please try again." 
-          });
-        }
-
-        return json(201, { 
-          success: true, 
-          message: responseBody.message ?? "Registration submitted successfully." 
-        });
-      } catch (err) {
-        console.error("Google Apps Script Fetch Error:", err);
-        return json(500, { error: "Failed to connect to registration service. Please try again." });
+        responseBody = responseText ? JSON.parse(responseText) : {};
+      } catch {
+        // Apps Script may return a non-JSON success page after accepting the request.
       }
+      if (!response.ok || responseBody.success === false) {
+        return json(502, { error: "Registration could not be sent to the event organizers. Please try again." });
+      }
+      return json(201, { success: true, message: responseBody.message ?? "Registration submitted successfully." });
     }
 
     if (path === "announcements" && method === "GET") {
