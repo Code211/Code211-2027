@@ -42,9 +42,22 @@ const clientDist = path.resolve(__dirname, "..", "..", "artifacts", "code211", "
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(clientDist));
 
-  // SPA fallback: for any non-API path, serve index.html so client-side routes work
-  app.get("/*", (req, res) => {
-    res.sendFile(path.join(clientDist, "index.html"));
+  // SPA fallback: serve index.html for non-API GET requests that accept HTML.
+  // Use middleware instead of a wildcard route so this works with Express 5 / path-to-regexp 8.
+  app.use((req, res, next) => {
+    // Do not interfere with API routes
+    if (req.path.startsWith("/api")) return next();
+
+    // Only respond to GET/HEAD requests for HTML pages
+    if (req.method !== "GET" && req.method !== "HEAD") return next();
+
+    const accept = (req.headers.accept || "") as string;
+    if (!accept.includes("text/html")) return next();
+
+    // Send the SPA entrypoint
+    res.sendFile(path.join(clientDist, "index.html"), (err) => {
+      if (err) next(err);
+    });
   });
 }
 
