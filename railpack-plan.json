@@ -1,0 +1,5 @@
+{
+  "install": ["pnpm", "install", "--frozen-lockfile", "--prefer-offline"],
+  "build": ["pnpm", "-r", "--filter", "@workspace/code211", "--filter", "@workspace/api-server", "run", "build"],
+  "start": ["pnpm", "--filter", "@workspace/api-server", "run", "start"]
+}
