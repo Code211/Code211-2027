@@ -35,58 +35,42 @@ app.use(express.urlencoded({ extended: true }));
 // API routes MUST be mounted before static serving so /api/* is handled by Express
 app.use("/api", router);
 
-// Resolve frontend dist directory robustly so it works when the server is running from
-// artifacts/api-server/dist (compiled) or when running from source in development.
+// Compute repo root relative to this file so the compiled artifact (in artifacts/api-server/dist)
+// and the source file (artifacts/api-server/src) both resolve to the same repository root.
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const candidates = [
-  // When running from source (ts): artifacts/api-server/src
-  path.resolve(__dirname, "..", "..", "artifacts", "code211", "dist", "public"),
-  // When running from compiled dist (js): artifacts/api-server/dist
-  path.resolve(__dirname, "..", "artifacts", "code211", "dist", "public"),
-  // Fallback to process.cwd()
-  path.resolve(process.cwd(), "artifacts", "code211", "dist", "public"),
-];
+const repoRoot = path.resolve(__dirname, "..", "..", "..");
+const clientDist = path.join(repoRoot, "artifacts", "code211", "dist", "public");
+const indexPath = path.join(clientDist, "index.html");
+const indexExists = fs.existsSync(indexPath);
 
-let clientDist: string | null = null;
-let indexExists = false;
-for (const c of candidates) {
-  try {
-    const indexPath = path.join(c, "index.html");
-    if (fs.existsSync(indexPath)) {
-      clientDist = c;
-      indexExists = true;
-      break;
-    }
-  } catch {
-    // ignore
-  }
-}
+logger.info({ repoRoot, clientDist, indexExists }, "Resolved frontend directory");
 
-logger.info({ clientDist, indexExists }, "Resolved frontend directory");
+if (process.env.NODE_ENV === "production") {
+  if (indexExists) {
+    // Serve static assets
+    app.use(express.static(clientDist));
 
-if (process.env.NODE_ENV === "production" && clientDist && indexExists) {
-  app.use(express.static(clientDist));
+    // SPA fallback middleware (Express 5 compatible). This will serve index.html for
+    // navigation requests (GET/HEAD that accept text/html) while skipping /api routes.
+    app.use((req, res, next) => {
+      // Never handle API routes here
+      if (req.path.startsWith("/api")) return next();
 
-  // SPA fallback: middleware-based, Express 5 compatible. Do not use path patterns that
-  // involve path-to-regexp. This middleware will only respond to GET/HEAD requests that
-  // accept HTML and will skip any path under /api so API routes are never swallowed.
-  app.use((req, res, next) => {
-    // Never handle API routes here
-    if (req.path.startsWith("/api")) return next();
+      // Only for navigation requests
+      if (req.method !== "GET" && req.method !== "HEAD") return next();
 
-    // Only for navigation requests
-    if (req.method !== "GET" && req.method !== "HEAD") return next();
+      const accept = (req.headers.accept || "") as string;
+      if (!accept.includes("text/html")) return next();
 
-    const accept = (req.headers.accept || "") as string;
-    if (!accept.includes("text/html")) return next();
-
-    const indexPath = path.join(clientDist!, "index.html");
-    res.sendFile(indexPath, (err) => {
-      if (err) next(err);
+      res.sendFile(indexPath, (err) => {
+        if (err) next(err);
+      });
     });
-  });
+  } else {
+    logger.warn({ clientDist, indexPath }, "Production mode but frontend build not found; not serving SPA");
+  }
 } else {
-  logger.warn({ clientDist, indexExists, nodeEnv: process.env.NODE_ENV }, "Frontend not served: production build not found or NODE_ENV!=production");
+  logger.info({ nodeEnv: process.env.NODE_ENV }, "Not in production; frontend not served by Express");
 }
 
 export default app;
