@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- apple-touch-icon (180x180) generated from provided logo -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" width="180" height="180" role="img" aria-label="Code211 logo">
+  <rect width="100%" height="100%" fill="#E6F7FF" />
+  <g transform="translate(90,90)">
+    <g fill="#06223A">
+      <path d="M-64,-20 L-36,-20 L0,36 L36,-20 L64,-20 L0,64 Z" />
+      <path d="M-64,20 L-36,20 L0,-36 L36,20 L64,20 L0,-64 Z" />
+    </g>
+    <g stroke="#6FD0E6" stroke-width="4" stroke-linecap="round" fill="none">
+      <path d="M0,-64 L0,-96" />
+      <path d="M32,-48 L64,-72" />
+      <path d="M-32,-48 L-64,-72" />
+      <path d="M48,0 L96,0" />
+      <path d="M-48,0 L-96,0" />
+      <path d="M32,48 L64,72" />
+      <path d="M-32,48 L-64,72" />
+    </g>
+    <g fill="#00A786">
+      <circle cx="0" cy="-84" r="4" />
+      <circle cx="32" cy="-48" r="4" />
+      <circle cx="-32" cy="-48" r="4" />
+      <circle cx="48" cy="0" r="4" />
+      <circle cx="-48" cy="0" r="4" />
+      <circle cx="32" cy="48" r="4" />
+      <circle cx="-32" cy="48" r="4" />
+    </g>
+  </g>
+</svg>
