@@ -4,7 +4,7 @@ import { CreateRegistrationBody, CreateRegistrationResponse } from "@workspace/a
 const router: IRouter = Router();
 const GOOGLE_APPS_SCRIPT_URL =
   process.env.GOOGLE_APPS_SCRIPT_URL ??
-  "https://script.google.com/macros/s/AKfycbxR9lESLI40p-KXvIxzJZl4Js8CmbMkEys94S_NTPcn6SS5HHk2ZwKUAxhJ2H-LxJM/exec";
+  "https://script.google.com/macros/s/AKfycbyHUJl9xrFjoGc3D_3iCTK4_XwIQhgtN7ELDo0YC_RVL-qpKEVKggu-r7APsTjeYFqM5A/exec";
 
 router.post("/registrations", async (req, res): Promise<void> => {
   const parsed = CreateRegistrationBody.safeParse(req.body);
