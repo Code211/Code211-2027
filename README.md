@@ -49,7 +49,7 @@ The registration form sends this JSON payload through the app API:
 }
 ```
 
-Registrations and teams are stored in PostgreSQL. The `teams` table owns the case-insensitive team name, capacity (1–4), and four-digit deletion PIN. A registration references its team with a cascading foreign key, so deleting a team also deletes its registrations. Team capacity is checked while the team row is locked to prevent over-capacity races.
+Registrations and teams are stored in PostgreSQL, and each successful registration is also forwarded server-side to the configured Google Apps Script web app so it continues to arrive in Google Sheets. The `teams` table owns the case-insensitive team name, capacity (1–4), and four-digit deletion PIN. A registration references its team with a cascading foreign key, so deleting a team also deletes its registrations. Team capacity is checked while the team row is locked to prevent over-capacity races.
 
 Students can create a team from the registration form, save the one-time PIN, or select an open existing team. The `/manage-team` page deletes a team only after its PIN is verified. PINs are never returned by the public team list or dashboard.
 
@@ -77,6 +77,22 @@ Railway is the recommended deployment for the full Postgres-backed app:
 6. Configure `SESSION_SECRET` and any organizer/admin secret as Railway environment variables. Never commit these values.
 
 The exact Railway service names and public domains are project-specific, so they should be copied from the Railway dashboard rather than hard-coded in this repository.
+
+### Railway environment variables
+
+Set these on the **API service**:
+
+| Variable | Required | Value |
+| --- | --- | --- |
+| `DATABASE_URL` | Yes | Railway PostgreSQL service reference variable, typically `${{Postgres.DATABASE_URL}}`; let Railway provide this rather than typing credentials |
+| `GOOGLE_APPS_SCRIPT_URL` | Yes | The Google Apps Script Web App `/exec` URL that writes to the Sheet; keep it private |
+| `SESSION_SECRET` | Yes | A long random secret used for server-side session/admin fallback |
+| `ORGANIZER_ADMIN_KEY` | Optional | Separate long random secret for organizer announcement writes; if omitted, the API falls back to `SESSION_SECRET` |
+| `NODE_ENV` | Recommended | `production` |
+
+Railway supplies `PORT` automatically. Do not manually set `PORT`, `PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER`, or `PGPASSWORD`. The frontend does not need database or Google credentials. If it is deployed separately, set only the build-time `BASE_PATH` when hosting it below a subpath; configure `/api` to proxy to the Railway API service.
+
+When `GOOGLE_APPS_SCRIPT_URL` is missing in production, the API refuses to report a successful registration even though the Postgres record is retained. If Sheets is temporarily unavailable, the API likewise reports the sync failure and asks organizers to avoid duplicate resubmission.
 
 ## Event details
 

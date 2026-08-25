@@ -8,7 +8,7 @@ pnpm --filter @workspace/code211 run build
 
 ## Full app deployment
 
-The preview API and Railway deployment use PostgreSQL for teams and registrations. Netlify can still host the static frontend and SPA shell, but its legacy serverless adapter does not provide the complete Postgres-backed team-management API. Use Railway for the API when deploying registration, team capacity, and deletion features.
+The preview API and Railway deployment use PostgreSQL for teams and registrations, and forward successful registrations to Google Sheets through `GOOGLE_APPS_SCRIPT_URL`. Netlify can still host the static frontend and SPA shell, but its legacy serverless adapter does not provide the complete Postgres-backed team-management API. Use Railway for the API when deploying registration, team capacity, deletion, and Google Sheets delivery features.
 
 The frontend posts to `/api/registrations`, `/api/teams`, and `/api/teams/:id`. If Netlify is used as the frontend host, configure its API rewrite to the deployed Railway API service and enable CORS for the frontend origin. Do not put `DATABASE_URL`, `SESSION_SECRET`, or organizer secrets in the frontend environment.
 

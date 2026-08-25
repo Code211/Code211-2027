@@ -12,6 +12,7 @@ import {
 import { randomInt } from "node:crypto";
 
 const router: IRouter = Router();
+const GOOGLE_APPS_SCRIPT_URL = process.env.GOOGLE_APPS_SCRIPT_URL;
 
 router.post("/registrations", async (req, res): Promise<void> => {
   const parsed = CreateRegistrationBody.safeParse(req.body);
@@ -26,15 +27,17 @@ router.post("/registrations", async (req, res): Promise<void> => {
   }
 
   try {
+    let registeredTeam: { name: string; maxMembers: number } | undefined;
     await db.transaction(async (tx) => {
       const [team] = await tx
-        .select({ id: teamsTable.id, maxMembers: teamsTable.maxMembers })
+        .select({ id: teamsTable.id, name: teamsTable.name, maxMembers: teamsTable.maxMembers })
         .from(teamsTable)
         .where(eq(teamsTable.id, parsed.data.teamId as number))
         .for("update");
       if (!team) {
         throw Object.assign(new Error("Team not found."), { statusCode: 404 });
       }
+      registeredTeam = team;
       const [{ memberCount }] = await tx
         .select({ memberCount: count() })
         .from(registrationsTable)
@@ -52,9 +55,47 @@ router.post("/registrations", async (req, res): Promise<void> => {
         dietaryNeeds: parsed.data.dietaryNeeds ?? null,
       });
     });
+
+    if (!GOOGLE_APPS_SCRIPT_URL) {
+      if (process.env.NODE_ENV === "production") {
+        req.log.error("GOOGLE_APPS_SCRIPT_URL is not configured");
+        res.status(503).json({ error: "Registration was saved, but Google Sheets delivery is not configured. Please contact the organizers." });
+        return;
+      }
+      req.log.warn("GOOGLE_APPS_SCRIPT_URL is not configured; registration was saved only to Postgres");
+    } else {
+      const sheetResponse = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        signal: AbortSignal.timeout(10000),
+        body: JSON.stringify({
+          school: parsed.data.school,
+          name: parsed.data.name,
+          email: parsed.data.email,
+          teamName: registeredTeam?.name ?? "",
+          teamSize: registeredTeam?.maxMembers ?? 1,
+          experience: parsed.data.experience,
+          tShirtSize: parsed.data.tShirtSize,
+          dietaryNeeds: parsed.data.dietaryNeeds ?? "",
+        }),
+      });
+      const responseText = await sheetResponse.text();
+      let responseBody: { success?: boolean } = {};
+      try {
+        responseBody = responseText ? JSON.parse(responseText) : {};
+      } catch {
+        // Apps Script commonly returns an HTML success page; HTTP 2xx is sufficient.
+      }
+      if (!sheetResponse.ok || responseBody.success === false) {
+        req.log.error({ status: sheetResponse.status }, "Google Sheets registration delivery failed");
+        res.status(502).json({ error: "Registration was saved, but Google Sheets delivery failed. Please contact the organizers before submitting again." });
+        return;
+      }
+    }
+
     res.status(201).json(CreateRegistrationResponse.parse({
       success: true,
-      message: "Registration submitted successfully.",
+      message: "Registration submitted successfully and sent to the event organizers.",
     }));
   } catch (error) {
     const statusCode = typeof error === "object" && error && "statusCode" in error && typeof error.statusCode === "number" ? error.statusCode : 500;
