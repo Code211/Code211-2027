@@ -18,3 +18,7 @@ export * from './registrationInputTShirtSize';
 export * from './registrationSubmissionResponse';
 export * from './scheduleItem';
 export * from './scheduleItemKind';
+export * from './team';
+export * from './teamCreationInput';
+export * from './teamCreationResponse';
+export * from './teamDeletionInput';

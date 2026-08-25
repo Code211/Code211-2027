@@ -6,37 +6,25 @@ The site is configured to build from the repository root with:
 pnpm --filter @workspace/code211 run build
 ```
 
-## Registration delivery
+## Full app deployment
 
-Registration data is not stored in PostgreSQL or Supabase. The frontend posts to `/api/registrations`, and the preview API or Netlify function forwards the request to the Google Apps Script web app.
+The preview API and Railway deployment use PostgreSQL for teams and registrations. Netlify can still host the static frontend and SPA shell, but its legacy serverless adapter does not provide the complete Postgres-backed team-management API. Use Railway for the API when deploying registration, team capacity, and deletion features.
 
-The default Apps Script URL is configured in:
+The frontend posts to `/api/registrations`, `/api/teams`, and `/api/teams/:id`. If Netlify is used as the frontend host, configure its API rewrite to the deployed Railway API service and enable CORS for the frontend origin. Do not put `DATABASE_URL`, `SESSION_SECRET`, or organizer secrets in the frontend environment.
 
-- `artifacts/api-server/src/routes/registrations.ts` for Replit preview
-- `netlify/functions/api.ts` for Netlify
-
-To override it without editing code, set `GOOGLE_APPS_SCRIPT_URL` in the target environment. The Apps Script endpoint should accept a JSON `POST` containing exactly:
+The full Railway setup is documented in `README.md`. The API service must receive:
 
 ```json
 {
   "school": "...",
   "name": "...",
   "email": "...",
-  "teamName": "...",
-  "teamSize": 1,
+  "teamId": 12,
   "experience": "...",
   "tShirtSize": "Adult M",
   "dietaryNeeds": "..."
 }
 ```
-
-The endpoint should return HTTP 2xx and preferably JSON such as:
-
-```json
-{ "success": true, "message": "Registration submitted successfully." }
-```
-
-The site shows a confirmation only when the Apps Script request succeeds. If the Apps Script endpoint rejects the request or is unavailable, the form shows a retryable error and no local registration record is created.
 
 ## Other production data
 

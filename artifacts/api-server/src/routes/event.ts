@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { asc, count, desc } from "drizzle-orm";
-import { db, announcementsTable, registrationsTable, scheduleItemsTable } from "@workspace/db";
+import { db, announcementsTable, registrationsTable, scheduleItemsTable, teamsTable } from "@workspace/db";
 import { GetDashboardSummaryResponse, ListScheduleItemsResponse } from "@workspace/api-zod";
 
 const router: IRouter = Router();
@@ -20,10 +20,9 @@ router.get("/dashboard", async (_req, res): Promise<void> => {
   const [{ announcementCount }] = await db
     .select({ announcementCount: count() })
     .from(announcementsTable);
-  const registrations = await db
-    .select({ teamName: registrationsTable.teamName })
-    .from(registrationsTable);
-  const teamNames = new Set(registrations.map(({ teamName }) => teamName?.trim()).filter(Boolean));
+  const [{ teamCount }] = await db
+    .select({ teamCount: count(teamsTable.id) })
+    .from(teamsTable);
   const [nextEvent] = await db
     .select()
     .from(scheduleItemsTable)
@@ -32,7 +31,7 @@ router.get("/dashboard", async (_req, res): Promise<void> => {
 
   res.json(GetDashboardSummaryResponse.parse({
     registrationCount: Number(registrationCount),
-    teamCount: teamNames.size,
+    teamCount: Number(teamCount),
     announcementCount: Number(announcementCount),
     nextEvent: nextEvent ?? null,
   }));

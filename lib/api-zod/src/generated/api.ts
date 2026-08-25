@@ -25,16 +25,13 @@ export const createRegistrationBodyNameMin = 2;
 export const createRegistrationBodyEmailRegExp = new RegExp('^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$');
 export const createRegistrationBodySchoolMin = 2;
 
-export const createRegistrationBodyTeamSizeMax = 4;
-
 
 
 export const CreateRegistrationBody = zod.object({
   "name": zod.string().min(createRegistrationBodyNameMin),
   "email": zod.string().regex(createRegistrationBodyEmailRegExp),
   "school": zod.string().min(createRegistrationBodySchoolMin),
-  "teamName": zod.string().nullish(),
-  "teamSize": zod.number().min(1).max(createRegistrationBodyTeamSizeMax),
+  "teamId": zod.number(),
   "experience": zod.string(),
   "tShirtSize": zod.enum(['Youth S', 'Youth M', 'Youth L', 'Adult S', 'Adult M', 'Adult L', 'Adult XL']),
   "dietaryNeeds": zod.string().nullish()
@@ -44,6 +41,73 @@ export const CreateRegistrationResponse = zod.object({
   "success": zod.boolean(),
   "message": zod.string()
 })
+
+
+/**
+ * @summary List teams and current capacity
+ */
+export const listTeamsResponseMaxMembersMax = 4;
+
+
+
+export const ListTeamsResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "maxMembers": zod.number().min(1).max(listTeamsResponseMaxMembersMax),
+  "memberCount": zod.number(),
+  "available": zod.boolean()
+})
+export const ListTeamsResponse = zod.array(ListTeamsResponseItem)
+
+
+/**
+ * @summary Create a team without an account
+ */
+export const createTeamBodyNameMin = 3;
+export const createTeamBodyNameMax = 25;
+
+
+export const createTeamBodyNameRegExp = new RegExp('^[A-Za-z0-9 -]+$');
+export const createTeamBodyMaxMembersMax = 4;
+
+
+
+export const CreateTeamBody = zod.object({
+  "name": zod.string().min(createTeamBodyNameMin).max(createTeamBodyNameMax).regex(createTeamBodyNameRegExp),
+  "maxMembers": zod.number().min(1).max(createTeamBodyMaxMembersMax)
+})
+
+export const createTeamResponseOneMaxMembersMax = 4;
+
+export const createTeamResponseTwoDeletionPinRegExp = new RegExp('^[0-9]{4}$');
+
+
+export const CreateTeamResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "maxMembers": zod.number().min(1).max(createTeamResponseOneMaxMembersMax),
+  "memberCount": zod.number(),
+  "available": zod.boolean()
+}).and(zod.object({
+  "deletionPin": zod.string().regex(createTeamResponseTwoDeletionPinRegExp)
+}))
+
+
+/**
+ * @summary Delete a team with its four-digit PIN
+ */
+export const DeleteTeamParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const deleteTeamBodyDeletionPinRegExp = new RegExp('^[0-9]{4}$');
+
+
+export const DeleteTeamBody = zod.object({
+  "deletionPin": zod.string().regex(deleteTeamBodyDeletionPinRegExp)
+})
+
+export const DeleteTeamResponse = zod.void()
 
 
 /**
