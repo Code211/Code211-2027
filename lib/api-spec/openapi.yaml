@@ -56,6 +56,81 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /teams:
+    get:
+      operationId: listTeams
+      tags: [teams]
+      summary: List teams and current capacity
+      responses:
+        "200":
+          description: Available teams
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Team"
+    post:
+      operationId: createTeam
+      tags: [teams]
+      summary: Create a team without an account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TeamCreationInput"
+      responses:
+        "201":
+          description: Team created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeamCreationResponse"
+        "400":
+          description: Invalid team
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Team name already taken
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /teams/{id}:
+    delete:
+      operationId: deleteTeam
+      tags: [teams]
+      summary: Delete a team with its four-digit PIN
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TeamDeletionInput"
+      responses:
+        "204":
+          description: Team deleted and registrations cascaded
+        "401":
+          description: Incorrect deletion PIN
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Team not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /announcements:
     get:
       operationId: listAnnouncements
@@ -214,12 +289,8 @@ components:
         school:
           type: string
           minLength: 2
-        teamName:
-          type: ["string", "null"]
-        teamSize:
+        teamId:
           type: integer
-          minimum: 1
-          maximum: 4
         experience:
           type: string
         tShirtSize:
@@ -231,7 +302,7 @@ components:
         - name
         - email
         - school
-        - teamSize
+        - teamId
         - experience
         - tShirtSize
     RegistrationSubmissionResponse:
@@ -244,6 +315,51 @@ components:
       required:
         - success
         - message
+    Team:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        maxMembers:
+          type: integer
+          minimum: 1
+          maximum: 4
+        memberCount:
+          type: integer
+        available:
+          type: boolean
+      required: [id, name, maxMembers, memberCount, available]
+    TeamCreationInput:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 3
+          maxLength: 25
+          pattern: "^[A-Za-z0-9 -]+$"
+        maxMembers:
+          type: integer
+          minimum: 1
+          maximum: 4
+      required: [name, maxMembers]
+    TeamCreationResponse:
+      allOf:
+        - $ref: "#/components/schemas/Team"
+        - type: object
+          properties:
+            deletionPin:
+              type: string
+              pattern: "^[0-9]{4}$"
+          required: [deletionPin]
+    TeamDeletionInput:
+      type: object
+      properties:
+        deletionPin:
+          type: string
+          pattern: "^[0-9]{4}$"
+      required: [deletionPin]
     Announcement:
       type: object
       properties:

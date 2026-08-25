@@ -33,13 +33,7 @@ export interface RegistrationInput {
   email: string;
   /** @minLength 2 */
   school: string;
-  /** @nullable */
-  teamName?: string | null;
-  /**
-     * @minimum 1
-     * @maximum 4
-     */
-  teamSize: number;
+  teamId: number;
   experience: string;
   tShirtSize: RegistrationInputTShirtSize;
   /** @nullable */
@@ -49,6 +43,42 @@ export interface RegistrationInput {
 export interface RegistrationSubmissionResponse {
   success: boolean;
   message: string;
+}
+
+export interface Team {
+  id: number;
+  name: string;
+  /**
+     * @minimum 1
+     * @maximum 4
+     */
+  maxMembers: number;
+  memberCount: number;
+  available: boolean;
+}
+
+export interface TeamCreationInput {
+  /**
+     * @minLength 3
+     * @maxLength 25
+     * @pattern ^[A-Za-z0-9 -]+$
+     */
+  name: string;
+  /**
+     * @minimum 1
+     * @maximum 4
+     */
+  maxMembers: number;
+}
+
+export type TeamCreationResponse = Team & {
+  /** @pattern ^[0-9]{4}$ */
+  deletionPin: string;
+};
+
+export interface TeamDeletionInput {
+  /** @pattern ^[0-9]{4}$ */
+  deletionPin: string;
 }
 
 export interface Announcement {

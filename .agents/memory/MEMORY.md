@@ -1,2 +1,2 @@
 - [Netlify data adapter](netlify-data-adapter.md) — preview and production use different server paths but preserve one frontend API shape.
-- [Registration delivery](registration-delivery.md) — registrations are forwarded server-side to the Google Apps Script web app, not stored locally.
+- [Registration and teams](registration-delivery.md) — Postgres is canonical; team capacity is transactional and deletion cascades registrations.

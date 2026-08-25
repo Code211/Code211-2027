@@ -14,13 +14,7 @@ export interface RegistrationInput {
   email: string;
   /** @minLength 2 */
   school: string;
-  /** @nullable */
-  teamName?: string | null;
-  /**
-     * @minimum 1
-     * @maximum 4
-     */
-  teamSize: number;
+  teamId: number;
   experience: string;
   tShirtSize: RegistrationInputTShirtSize;
   /** @nullable */
