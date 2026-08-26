@@ -67,14 +67,26 @@ pnpm --filter @workspace/code211 run build
 
 ## Railway setup
 
-Railway is the recommended deployment for the full Postgres-backed app:
+Railway is the recommended deployment for the full Postgres-backed app. The simplest setup is one Railway web service that serves both the built React frontend and Express API, plus one Railway PostgreSQL service:
 
-1. Create a Railway project with a PostgreSQL service and an API service.
-2. Set the API service's `DATABASE_URL` to the reference variable from the Railway PostgreSQL service. Do not commit it or paste it into source files.
-3. Set the API service start command to the built API server command used by this workspace. Railway supplies `PORT`; the server already binds to it.
-4. Apply the schema from the API service's deployment process with `pnpm --filter @workspace/db run push` in a controlled migration step. Review Drizzle's proposed changes before accepting legacy-column removals.
-5. Deploy the frontend as its own Railway service (or static host) using `pnpm --filter @workspace/code211 run build`. Configure its API base/path to the deployed API service according to the existing Railway routing setup; do not invent a domain in code.
-6. Configure `SESSION_SECRET` and any organizer/admin secret as Railway environment variables. Never commit these values.
+1. Create a Railway project and add a PostgreSQL service.
+2. Add this repository as a web service. Use the repository root as its working directory.
+3. Set the web service build command to:
+
+   ```bash
+   pnpm install --frozen-lockfile && pnpm run build
+   ```
+
+4. Set the web service start command to:
+
+   ```bash
+   pnpm --filter @workspace/api-server run start
+   ```
+
+   The API server serves `artifacts/code211/dist/public` when `NODE_ENV=production`, so this single service handles the website and `/api/*`.
+5. Add the PostgreSQL reference variable described below. Railway supplies `PORT`; the server already binds to it.
+6. Apply the schema from a controlled Railway migration/deploy step with `pnpm --filter @workspace/db run push`. Review Drizzle's proposed changes before accepting legacy-column removals.
+7. Generate a Railway public domain for the web service. Use that domain for the website; do not hard-code it into the repository.
 
 The exact Railway service names and public domains are project-specific, so they should be copied from the Railway dashboard rather than hard-coded in this repository.
 
