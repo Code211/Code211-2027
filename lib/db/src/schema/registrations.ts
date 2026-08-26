@@ -8,16 +8,10 @@ export const registrationsTable = pgTable("registrations", {
   name: text("name").notNull(),
   email: text("email").notNull(),
   school: text("school").notNull(),
-  // Retained for compatibility with existing databases. New registrations do
-  // not collect these legacy fields.
-  grade: text("grade"),
-  teamName: text("team_name"),
-  teamSize: integer("team_size"),
   teamId: integer("team_id").references(() => teamsTable.id, { onDelete: "cascade" }),
   experience: text("experience").notNull(),
   tShirtSize: text("t_shirt_size").notNull().default("Adult M"),
   dietaryNeeds: text("dietary_needs"),
-  projectIdea: text("project_idea"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
