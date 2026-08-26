@@ -9,7 +9,7 @@ Student-run District 211 hackathon site with registration, schedule, FAQ, and a 
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+- Required env: `DATABASE_SOURCE` (`replit` for the current Replit database; `railway` to use `RAILWAY_DATABASE_URL`). Replit supplies `DATABASE_URL`.
 
 ## Stack
 
@@ -31,7 +31,7 @@ Student-run District 211 hackathon site with registration, schedule, FAQ, and a 
 
 ## Architecture decisions
 
-- Preview uses the shared API server and Replit PostgreSQL; Netlify uses the function adapter backed by Supabase REST.
+- Preview uses the shared API server and the database selected by `DATABASE_SOURCE`; the current default is Replit PostgreSQL. Netlify uses the function adapter backed by Supabase REST.
 - Public dashboard endpoints expose aggregate registration data only; participant records are never listed publicly.
 - OpenAPI is the contract source and generated client/Zod packages are used by both frontend and backend.
 
